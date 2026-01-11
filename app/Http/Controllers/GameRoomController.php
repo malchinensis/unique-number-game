@@ -18,6 +18,31 @@ class GameRoomController extends Controller
         return view('game.index', compact('rooms'));
     }
 
+    public function getRoomsList()
+    {
+        $rooms = GameRoom::with(['creator', 'participants'])
+            ->where('status', '!=', 'finished')
+            ->latest()
+            ->get();
+
+        return response()->json([
+            'rooms' => $rooms->map(function ($room) {
+                return [
+                    'id' => $room->id,
+                    'name' => $room->name,
+                    'creator_name' => $room->creator->name,
+                    'min_number' => $room->min_number,
+                    'max_number' => $room->max_number,
+                    'min_players' => $room->min_players,
+                    'max_players' => $room->max_players,
+                    'participants_count' => $room->participants->count(),
+                    'status' => $room->status,
+                    'url' => route('game.show', $room),
+                ];
+            }),
+        ]);
+    }
+
     public function create()
     {
         return view('game.create');
